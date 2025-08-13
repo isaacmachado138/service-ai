@@ -1,24 +1,47 @@
 <?php
 namespace App\Services;
 
-use Prism\Prism;
+use App\Services\Agents\AgentInterface;
+use App\Services\Agents\OpenAiAgent;
+use App\Services\Models\ChatModelInterface;
+use App\Services\Models\DefaultChatModel;
 
 class AiService
 {
-    protected $prism;
+    protected $agent;
+    protected $chatModel;
 
-    public function __construct()
+    public function __construct(AgentInterface $agent, ChatModelInterface $chatModel)
     {
-        $this->prism = new Prism([
-            'provider' => config('prism.provider'),
-            'openai_api_key' => env('OPENAI_API_KEY'),
-            'model' => config('prism.model'),
-        ]);
+        $this->agent = $agent;
+        $this->chatModel = $chatModel;
     }
 
-    public function sendPrompt(string $prompt): string
+    public static function makeFromConfig(): self
     {
-        $result = $this->prism->ask($prompt);
-        return $result['response'] ?? '';
+        $provider = config('prism.provider', 'openai');
+        $model = config('prism.model', 'gpt-4');
+
+        // Instanciar agente conforme provider
+        switch ($provider) {
+            case 'openai':
+            default:
+                $agent = new OpenAiAgent([
+                    'provider' => $provider,
+                    'openai_api_key' => env('OPENAI_API_KEY'),
+                    'model' => $model,
+                ]);
+        }
+
+        // Instanciar modelo de chat (pode ser dinâmico)
+        $chatModel = new DefaultChatModel();
+
+        return new self($agent, $chatModel);
+    }
+
+    public function sendPrompt(array $input): string
+    {
+        $prompt = $this->chatModel->buildPrompt($input);
+        return $this->agent->ask($prompt, $input['options'] ?? []);
     }
 }

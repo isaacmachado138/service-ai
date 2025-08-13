@@ -7,23 +7,11 @@ use App\Models\AiLog;
 
 class AiController extends Controller
 {
-    public function query(Request $request, AiService $aiService)
+    public function query(Request $request)
     {
-        $request->validate(['prompt' => 'required|string']);
-        $start = microtime(true);
-
-        $response = $aiService->sendPrompt($request->prompt);
-
-        $executionTime = microtime(true) - $start;
-
-        AiLog::create([
-            'provider' => config('prism.provider'),
-            'model' => config('prism.model'),
-            'prompt' => $request->prompt,
-            'response' => $response,
-            'execution_time' => $executionTime,
-        ]);
-
-        return response()->json(['response' => $response]);
+        // Não processa prompt nem chama serviço de IA
+        return response()->json([
+            'response' => 'Resposta temporariamente indisponível.'
+        ], 503);
     }
 }
