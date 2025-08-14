@@ -1,47 +1,66 @@
 <?php
 namespace App\Services;
 
-use App\Services\Agents\AgentInterface;
-use App\Services\Agents\OpenAiAgent;
-use App\Services\Models\ChatModelInterface;
-use App\Services\Models\DefaultChatModel;
-
 class AiService
 {
-    protected $agent;
-    protected $chatModel;
+    private array $instances = [];
+    private $agent;
+    private $chatModel;
+    private $systemPrompt = '';
+    private $prompt = '';
+    private $tools = [];
+    private $provider = '';
+    private $model = '';
+    private $apiKey = '';
 
-    public function __construct(AgentInterface $agent, ChatModelInterface $chatModel)
+    public function __construct($apiKey = null, $provider = null, $model = null)
     {
-        $this->agent = $agent;
-        $this->chatModel = $chatModel;
+        $this->apiKey = $apiKey;
+        $this->provider = $provider;
+        $this->model = $model;
     }
 
-    public static function makeFromConfig(): self
+    public static function make($apiKey = null, $provider = null, $model = null): self
     {
-        $provider = config('prism.provider', 'openai');
-        $model = config('prism.model', 'gpt-4');
-
-        // Instanciar agente conforme provider
-        switch ($provider) {
-            case 'openai':
-            default:
-                $agent = new OpenAiAgent([
-                    'provider' => $provider,
-                    'openai_api_key' => env('OPENAI_API_KEY'),
-                    'model' => $model,
-                ]);
-        }
-
-        // Instanciar modelo de chat (pode ser dinâmico)
-        $chatModel = new DefaultChatModel();
-
-        return new self($agent, $chatModel);
+        return new self($apiKey, $provider, $model);
     }
 
-    public function sendPrompt(array $input): string
+    public function with(string $systemPrompt): self
     {
-        $prompt = $this->chatModel->buildPrompt($input);
-        return $this->agent->ask($prompt, $input['options'] ?? []);
+        $this->systemPrompt = $systemPrompt;
+        return $this;
+    }
+
+    public function prompt(string $prompt): self
+    {
+        $this->prompt = $prompt;
+        return $this;
+    }
+
+    public function tools(array $tools): self
+    {
+        $this->tools = $tools;
+        return $this;
+    }
+
+    // Exemplo de chamada:
+    // AiService::make(getEnv('apikey'), GTP,)
+    //     ->with('...')
+    //     ->prompt('')
+    //     ->tools([
+    //         new ActionPickupBuild::class,
+    //     ])
+    //     ->execute();
+
+    public function execute()
+    {
+        // Exemplo genérico:
+        $response = Prism::text()
+            ->using($this->provider ?? Provider::Anthropic, $this->model ?? 'claude-3-7-sonnet-latest')
+            ->withSystemPrompt($this->systemPrompt)
+            ->withPrompt($this->prompt)
+            ->withTools($this->tools)
+            ->asText();
+        return $response;
     }
 }
