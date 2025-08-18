@@ -60,10 +60,10 @@ class AiService
 
         //echo Provider::OpenAI->name;
         $response = Prism::text()
-            ->using(Provider::OpenAI->name, 'gpt-4o')
+            ->using($this->provider, $this->model)
             ->withSystemPrompt($this->systemPrompt)
             ->withPrompt($this->prompt)
-            //->withTools($this->tools)
+            ->withTools($this->tools)
             ->asText();
 
         return $response->steps[0]->text;
