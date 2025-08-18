@@ -1,6 +1,9 @@
 <?php
 namespace App\Services;
 
+use Prism\Prism\Prism;
+use Prism\Prism\Enums\Provider;
+
 class AiService
 {
     private array $instances = [];
@@ -15,9 +18,9 @@ class AiService
 
     public function __construct($apiKey = null, $provider = null, $model = null)
     {
-        $this->apiKey = $apiKey;
-        $this->provider = $provider;
-        $this->model = $model;
+        $this->apiKey = $apiKey ?? env('OPENAI_API_KEY');
+        $this->provider = $provider ?? config('prism.provider', 'openai');
+        $this->model = $model ?? config('prism.model', 'gpt-4');
     }
 
     public static function make($apiKey = null, $provider = null, $model = null): self
@@ -54,13 +57,15 @@ class AiService
 
     public function execute()
     {
-        // Exemplo genérico:
+
+        //echo Provider::OpenAI->name;
         $response = Prism::text()
-            ->using($this->provider ?? Provider::Anthropic, $this->model ?? 'claude-3-7-sonnet-latest')
+            ->using(Provider::OpenAI->name, 'gpt-4o')
             ->withSystemPrompt($this->systemPrompt)
             ->withPrompt($this->prompt)
-            ->withTools($this->tools)
+            //->withTools($this->tools)
             ->asText();
-        return $response;
+
+        return $response->steps[0]->text;
     }
 }
