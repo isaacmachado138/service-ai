@@ -59,8 +59,8 @@ class AiService
     public function __construct($apiKey = null, $provider = null, $model = null)
     {
         $this->apiKey = $apiKey ?? env('OPENAI_API_KEY');
-        $this->provider = $provider ?? config('prism.provider', 'openai');
-        $this->model = $model ?? config('prism.model', 'gpt-4');
+        $this->provider = $provider ?? env('PRISM_PROVIDER', 'openai');
+        $this->model = $model ?? env('PRISM_MODEL', 'gpt-4');
     }
 
     /**

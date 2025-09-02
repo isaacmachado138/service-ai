@@ -39,10 +39,21 @@ class AiController extends Controller
         $template = TemplateManager::getFormattedTemplate($templateCode, $variables);
         
         // Executar o serviço com os prompts do template
+        $start = microtime(true);
         $response = \App\Services\AiService::make()
             ->with($template['system_prompt'])
             ->prompt($template['user_prompt'])
             ->execute();
+        $executionTime = round((microtime(true) - $start) * 1000); // tempo em ms
+
+        // Registrar log da consulta
+        \App\Models\AiLog::create([
+            'provider' => env('PRISM_PROVIDER', 'openai'),
+            'model' => env('PRISM_MODEL', 'gpt-4'),
+            'prompt' => $template['user_prompt'],
+            'response' => $response,
+            'execution_time' => $executionTime
+        ]);
 
         return response()->json([
             'text' => $response
