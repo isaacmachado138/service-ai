@@ -10,11 +10,6 @@ use Prism\Prism\Enums\Provider;
 class AiService
 {
     /**
-     * Armazena instâncias de serviço
-     */
-    private array $instances = [];
-    
-    /**
      * Agente de IA a ser utilizado
      */
     private $agent;
