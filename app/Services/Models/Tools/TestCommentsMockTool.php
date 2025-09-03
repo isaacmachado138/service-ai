@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Services\Models\Actions;
+namespace App\Services\Models\Tools;
 
 use App\Services\Models\Builder\Builder;
 use Illuminate\Support\Facades\Http;
 use Prism\Prism\Tool;
 
 /**
- * Action para buscar comentários de um post da API JSONPlaceholder
+ * Tool para buscar comentários de um post da API JSONPlaceholder
  */
-class ActionTestCommentsMock extends Builder
+class TestCommentsMockTool extends Builder
 {
     /**
      * Constrói e retorna uma Tool do Prism para buscar comentários

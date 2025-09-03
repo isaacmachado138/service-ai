@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Services\Models\Actions;
+namespace App\Services\Models\Tools;
 
 use App\Services\Models\Builder\Builder;
 use Illuminate\Support\Facades\Http;
 use Prism\Prism\Tool;
 
 /**
- * Action para buscar dados de usuários da API JSONPlaceholder
+ * Tool para buscar dados de usuários da API JSONPlaceholder
  */
-class ActionTestUsersMock extends Builder
+class TestUsersMockTool extends Builder
 {
     /**
      * Constrói e retorna uma Tool do Prism para buscar usuários

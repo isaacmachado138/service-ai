@@ -3,6 +3,7 @@ namespace App\Services;
 
 use Prism\Prism\Prism;
 use Prism\Prism\Enums\Provider;
+use App\Models\AiLog;
 
 /**
  * Serviço para interação com modelos de IA via Prism
@@ -123,6 +124,8 @@ class AiService
      */
     public function execute()
     {
+        $start = microtime(true);
+        
         $prismBuilder = Prism::text()
             ->using($this->provider, $this->model)
             ->withSystemPrompt($this->systemPrompt)
@@ -134,7 +137,19 @@ class AiService
         }
 
         $response = $prismBuilder->asText();
+        $responseText = $response->steps[0]->text;
+        
+        $executionTime = round((microtime(true) - $start) * 1000); // tempo em ms
 
-        return $response->steps[0]->text;
+        // Registrar log da consulta automaticamente
+        AiLog::create([
+            'provider' => $this->provider,
+            'model' => $this->model,
+            'prompt' => $this->prompt,
+            'response' => $responseText,
+            'execution_time' => $executionTime
+        ]);
+
+        return $responseText;
     }
 }
