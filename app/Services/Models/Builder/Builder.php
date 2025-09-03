@@ -2,7 +2,15 @@
 
 namespace App\Services\Models\Builder;
 
+use Prism\Prism\Tool;
+
 abstract class Builder implements BuilderInterface
 {
-    // Métodos comuns para todos os builders podem ser definidos aqui
+    /**
+     * Constrói e retorna uma Tool do Prism
+     * Deve ser implementado pelas classes filhas
+     *
+     * @return Tool
+     */
+    abstract public function build(): Tool;
 }

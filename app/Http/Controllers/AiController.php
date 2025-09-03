@@ -5,6 +5,8 @@ use Illuminate\Http\Request;
 use App\Services\AiService;
 use App\Services\Templates\TemplateManager;
 use App\Models\AiLog;
+use App\Services\Models\Actions\ActionTestCommentsMock;
+use App\Services\Models\Actions\ActionTestUsersMock;
 
 /**
  * Controlador responsável pelo processamento de consultas de IA
@@ -57,6 +59,55 @@ class AiController extends Controller
 
         return response()->json([
             'text' => $response
+        ]);
+    }
+
+    /**
+     * Testa as actions com template fixo summary_comments_test
+     *
+     * @param Request $request Objeto de requisição contendo:
+     *                         - postId: ID do post para buscar comentários (via query param)
+     * 
+     * @return \Illuminate\Http\JsonResponse Resposta JSON contendo:
+     *                                      - text: Texto da resposta gerada pela IA
+     */
+    public function testActions(Request $request)
+    {
+        // Obter o ID do post da query string (default: 1)
+        $postId = $request->query('postId', 1);
+        
+        // Usar template fixo 'summary_comments_test'
+        $templateCode = 'summary_comments_test';
+        $variables = ['postId' => $postId];
+        
+        // Obter o template formatado (system_prompt e user_prompt)
+        $template = TemplateManager::getFormattedTemplate($templateCode, $variables);
+        
+        // Executar o serviço com os prompts do template e as ferramentas
+        $start = microtime(true);
+        $response = \App\Services\AiService::make()
+            ->with($template['system_prompt'])
+            ->prompt($template['user_prompt'])
+            ->tools([
+                (new ActionTestCommentsMock())->build(),
+                (new ActionTestUsersMock())->build()
+            ])
+            ->execute();
+        $executionTime = round((microtime(true) - $start) * 1000); // tempo em ms
+
+        // Registrar log da consulta
+        \App\Models\AiLog::create([
+            'provider' => env('PRISM_PROVIDER', 'openai'),
+            'model' => env('PRISM_MODEL', 'gpt-4'),
+            'prompt' => $template['user_prompt'],
+            'response' => $response,
+            'execution_time' => $executionTime
+        ]);
+
+        return response()->json([
+            'text' => $response,
+            'postId' => $postId,
+            'template' => $templateCode
         ]);
     }
 }

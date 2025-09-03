@@ -5,6 +5,7 @@ use App\Http\Controllers\PromptTemplateController;
 
 // Rota de AI
 Route::post('/query', [AiController::class, 'query']);
+Route::get('/test-actions', [AiController::class, 'testActions']);
 
 // Rotas para gerenciamento de templates
 Route::prefix('templates')->group(function () {

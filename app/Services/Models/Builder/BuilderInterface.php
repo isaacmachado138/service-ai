@@ -2,7 +2,14 @@
 
 namespace App\Services\Models\Builder;
 
+use Prism\Prism\Tool;
+
 interface BuilderInterface
 {
-    public function build();
+    /**
+     * Constrói e retorna uma Tool do Prism
+     *
+     * @return Tool
+     */
+    public function build(): Tool;
 }

@@ -123,12 +123,17 @@ class AiService
      */
     public function execute()
     {
-        $response = Prism::text()
+        $prismBuilder = Prism::text()
             ->using($this->provider, $this->model)
             ->withSystemPrompt($this->systemPrompt)
-            ->withPrompt($this->prompt)
-            ->withTools($this->tools)
-            ->asText();
+            ->withPrompt($this->prompt);
+
+        // Só adiciona tools se houver alguma definida
+        if (!empty($this->tools)) {
+            $prismBuilder = $prismBuilder->withTools($this->tools);
+        }
+
+        $response = $prismBuilder->asText();
 
         return $response->steps[0]->text;
     }
