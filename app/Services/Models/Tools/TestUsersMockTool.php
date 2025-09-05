@@ -18,21 +18,37 @@ class TestUsersMockTool extends Builder
      */
     public function build(): Tool
     {
+        \Log::info('[TestUsersMockTool] build() called', [
+            'request_all' => request()->all(),
+        ]);
         return (new Tool())
             ->as('get_users')
             ->for('Busca lista completa de usuários da API JSONPlaceholder')
             ->using(function (): string {
+                \Log::info('[TestUsersMockTool] execute() called');
                 try {
                     $response = Http::get('https://jsonplaceholder.typicode.com/users');
-                    
+                    \Log::info('[TestUsersMockTool] HTTP request sent', [
+                        'url' => 'https://jsonplaceholder.typicode.com/users',
+                        'status' => $response->status(),
+                        'successful' => $response->successful(),
+                    ]);
                     if ($response->successful()) {
                         $users = $response->json();
+                        \Log::info('[TestUsersMockTool] Users fetched', [
+                            'count' => count($users),
+                            'users' => $users,
+                        ]);
                         return json_encode([
                             'success' => true,
                             'data' => $users,
                             'count' => count($users)
                         ]);
                     } else {
+                        \Log::warning('[TestUsersMockTool] Failed to fetch users', [
+                            'status' => $response->status(),
+                            'body' => $response->body(),
+                        ]);
                         return json_encode([
                             'success' => false,
                             'error' => 'Falha ao buscar usuários',
@@ -40,6 +56,9 @@ class TestUsersMockTool extends Builder
                         ]);
                     }
                 } catch (\Exception $e) {
+                    \Log::error('[TestUsersMockTool] Exception thrown', [
+                        'error' => $e->getMessage(),
+                    ]);
                     return json_encode([
                         'success' => false,
                         'error' => 'Erro na requisição: ' . $e->getMessage()

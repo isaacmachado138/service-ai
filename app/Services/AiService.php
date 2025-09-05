@@ -129,7 +129,8 @@ class AiService
         $prismBuilder = Prism::text()
             ->using($this->provider, $this->model)
             ->withSystemPrompt($this->systemPrompt)
-            ->withPrompt($this->prompt);
+            ->withPrompt($this->prompt)
+            ->withMaxSteps(2);
 
         // Só adiciona tools se houver alguma definida
         if (!empty($this->tools)) {
@@ -137,8 +138,30 @@ class AiService
         }
 
         $response = $prismBuilder->asText();
-        $responseText = $response->steps[0]->text;
-        
+
+        /*************** Logging Steps ***************/
+        foreach ($response->steps as $index => $step) {
+            if (isset($step->toolCall)) {
+                \Log::info("Step {$index}: Tool call", [
+                    'tool' => $step->toolCall->name,
+                    'args' => $step->toolCall->arguments
+                ]);
+            }
+            if (isset($step->text)) {
+                \Log::info("Step {$index}: Text response", [
+                    'text' => $step->text
+                ]);
+            }
+        }
+
+        $lastStep = $response->steps[count($response->steps) - 1] ?? null;
+        $responseText = '';
+        if (isset($lastStep->text)) {
+            $responseText = $lastStep->text;
+        } elseif (isset($lastStep->toolCall)) {
+            $responseText = '[Tool call: ' . $lastStep->toolCall->name . ']';
+        }
+
         $executionTime = round((microtime(true) - $start) * 1000); // tempo em ms
 
         // Registrar log da consulta automaticamente
